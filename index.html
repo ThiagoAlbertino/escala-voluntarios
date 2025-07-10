@@ -397,89 +397,94 @@
     }
 
     function gerarTexto() {
-      const mesInput = document.getElementById("mes").value;
-      if (!mesInput) {
-        document.getElementById("msgErro").textContent = "⚠️ Selecione um mês antes de gerar a escala.";
-        return;
-      }
-      document.getElementById("msgErro").textContent = "";
+  const mesInput = document.getElementById("mes").value;
+  if (!mesInput) {
+    document.getElementById("msgErro").textContent = "⚠️ Selecione um mês antes de gerar a escala.";
+    return;
+  }
+  document.getElementById("msgErro").textContent = "";
 
-      const textoMes = new Date(mesInput + "-01").toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
-      let texto = `📅 Escala - ${textoMes}\n\n`;
-      const contagem = {};
+  // Corrigido aqui para interpretar corretamente o mês e ano
+  const [ano, mes] = mesInput.split("-").map(Number);
+  const data = new Date(ano, mes - 1, 1);
+  const textoMes = data.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
 
-      datasCulto.forEach((d, idx) => {
-        const diaSemana = d.getDay();
-        const infoCulto = nomesCultos[diaSemana];
-        const dataStr = d.toLocaleDateString("pt-BR");
+  let texto = `📅 Escala - ${textoMes}\n\n`;
+  const contagem = {};
 
-        if (diaSemana === 0) {
-          infoCulto.turnos.forEach((turno) => {
-            const turnoId = `turno_${idx}_${turno}`.replace(/\s+/g, "_");
-            const isAtivo = document.getElementById(`${turnoId}_ativo`).checked;
-            if (!isAtivo) return;
+  datasCulto.forEach((d, idx) => {
+    const diaSemana = d.getDay();
+    const infoCulto = nomesCultos[diaSemana];
+    const dataStr = d.toLocaleDateString("pt-BR");
 
-            let blocoTurno = `${turno}:\n`;
-            let temConteudo = false;
+    if (diaSemana === 0) {
+      infoCulto.turnos.forEach((turno) => {
+        const turnoId = `turno_${idx}_${turno}`.replace(/\s+/g, "_");
+        const isAtivo = document.getElementById(`${turnoId}_ativo`).checked;
+        if (!isAtivo) return;
 
-            funcoesFixas.forEach((func) => {
-              const checkboxes = document.querySelectorAll(
-                `input[data-dia='${idx}'][data-turno='${turno}'][data-func='${func}']:checked`
-              );
-              if (checkboxes.length > 0) {
-                const nomes = Array.from(checkboxes).map((cb) => cb.value);
-                blocoTurno += `- ${func}: ${nomes.join(", ")}\n`;
-                nomes.forEach((nome) => {
-                  contagem[nome] = (contagem[nome] || 0) + 1;
-                });
-                temConteudo = true;
-              }
+        let blocoTurno = `${turno}:\n`;
+        let temConteudo = false;
+
+        funcoesFixas.forEach((func) => {
+          const checkboxes = document.querySelectorAll(
+            `input[data-dia='${idx}'][data-turno='${turno}'][data-func='${func}']:checked`
+          );
+          if (checkboxes.length > 0) {
+            const nomes = Array.from(checkboxes).map((cb) => cb.value);
+            blocoTurno += `- ${func}: ${nomes.join(", ")}\n`;
+            nomes.forEach((nome) => {
+              contagem[nome] = (contagem[nome] || 0) + 1;
             });
-
-            if (temConteudo) {
-              texto += `🗓️ ${infoCulto.nome} - ${dataStr}\n${blocoTurno}\n`;
-            }
-          });
-        } else {
-          const unicoId = `culto_${idx}`;
-          const isAtivo = document.getElementById(`${unicoId}_ativo`).checked;
-          if (!isAtivo) return;
-
-          let blocoCulto = "";
-          let temConteudo = false;
-
-          funcoesFixas.forEach((func) => {
-            const checkboxes = document.querySelectorAll(
-              `input[data-dia='${idx}'][data-turno='Único'][data-func='${func}']:checked`
-            );
-            if (checkboxes.length > 0) {
-              const nomes = Array.from(checkboxes).map((cb) => cb.value);
-              blocoCulto += `- ${func}: ${nomes.join(", ")}\n`;
-              nomes.forEach((nome) => {
-                contagem[nome] = (contagem[nome] || 0) + 1;
-              });
-              temConteudo = true;
-            }
-          });
-
-          if (temConteudo) {
-            texto += `🗓️ ${infoCulto.nome} - ${dataStr}\n${blocoCulto}\n`;
+            temConteudo = true;
           }
+        });
+
+        if (temConteudo) {
+          texto += `🗓️ ${infoCulto.nome} - ${dataStr}\n${blocoTurno}\n`;
+        }
+      });
+    } else {
+      const unicoId = `culto_${idx}`;
+      const isAtivo = document.getElementById(`${unicoId}_ativo`).checked;
+      if (!isAtivo) return;
+
+      let blocoCulto = "";
+      let temConteudo = false;
+
+      funcoesFixas.forEach((func) => {
+        const checkboxes = document.querySelectorAll(
+          `input[data-dia='${idx}'][data-turno='Único'][data-func='${func}']:checked`
+        );
+        if (checkboxes.length > 0) {
+          const nomes = Array.from(checkboxes).map((cb) => cb.value);
+          blocoCulto += `- ${func}: ${nomes.join(", ")}\n`;
+          nomes.forEach((nome) => {
+            contagem[nome] = (contagem[nome] || 0) + 1;
+          });
+          temConteudo = true;
         }
       });
 
-      let relatorio = "📊 Relatório de Voluntários:\n";
-      Object.entries(contagem)
-        .sort((a, b) => b[1] - a[1])
-        .forEach(([nome, qtd]) => {
-          relatorio += `- ${nome}: ${qtd} vez(es)\n`;
-        });
-
-      document.getElementById("relatorio").textContent = relatorio.trim();
-      document.getElementById("resultado").textContent = texto.trim() || "Nenhum culto preenchido.";
-      document.getElementById("blocoResultado").style.display = "block";
-      window.scrollTo({top: document.body.scrollHeight, behavior: "smooth"});
+      if (temConteudo) {
+        texto += `🗓️ ${infoCulto.nome} - ${dataStr}\n${blocoCulto}\n`;
+      }
     }
+  });
+
+  let relatorio = "📊 Relatório de Voluntários:\n";
+  Object.entries(contagem)
+    .sort((a, b) => b[1] - a[1])
+    .forEach(([nome, qtd]) => {
+      relatorio += `- ${nome}: ${qtd} vez(es)\n`;
+    });
+
+  document.getElementById("relatorio").textContent = relatorio.trim();
+  document.getElementById("resultado").textContent = texto.trim() || "Nenhum culto preenchido.";
+  document.getElementById("blocoResultado").style.display = "block";
+  window.scrollTo({top: document.body.scrollHeight, behavior: "smooth"});
+}
+
 
     document.getElementById("voluntarios").addEventListener("input", () => {
       localStorage.setItem("voluntarios", document.getElementById("voluntarios").value);
