@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Escala Voluntariado - Lagoinha Londrina</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f7f7f7;
+      color: #333;
+    }
+    h1, h2, h3 { color: #2c3e50; }
+    input[type="text"], input[type="month"], button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    button {
+      background-color: #27ae60;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover { background-color: #219150; }
+    .dia {
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    .turno { margin-top: 15px; margin-bottom: 10px; }
+    .funcoes-group {
+      margin-bottom: 15px;
+      padding: 10px;
+      border: 1px dashed #ccc;
+      border-radius: 4px;
+      background-color: #f0f0f0;
+    }
+    .funcoes { margin-left: 10px; margin-bottom: 10px; }
+    .voluntario-checkbox {
+      display: inline-block;
+      margin-right: 10px;
+      margin-top: 5px;
+    }
+    .inativo { display: none; }
+    #resultado {
+      white-space: pre-wrap;
+      background: #fff;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    #relatorio {
+      background: #e8f6f0;
+      padding: 10px;
+      border: 1px solid #bbb;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+    .label-incluir-culto {
+      color: red;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    @media (max-width: 600px) {
+      body { padding: 10px; }
+      input, button { font-size: 15px; padding: 8px; }
+      .dia { padding: 10px; }
+      .voluntario-checkbox { display: block; margin-bottom: 5px; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📋 Escala Voluntariado FOLLOW Igreja Lagoinha Londrina</h1>
+
+  <label for="mes">Selecione o mês:</label>
+  <input type="month" id="mes" />
+
+  <label for="voluntarios">Voluntários <strong>(separados por vírgula)</strong>:</label>
+  <input
+    type="text"
+    id="voluntarios"
+    placeholder="Ana, João, Marcos, Paula"
+    value="Amanda,Brendha,Fernanda,Hugo,Mari,Raquel,Thiago,Vitória,Yasmin"
+  />
+
+  <button onclick="gerarCampos()">📅 Criar Escala do Mês</button>
+
+  <form id="formEscala" style="display:none;"></form>
+
+  <div id="blocoResultado" style="display:none;">
+    <h2>📤 Escala Gerada</h2>
+    <div id="relatorio"></div>
+    <div id="resultado"></div>
+    <button onclick="copiarTexto()">📋 Copiar para WhatsApp</button>
+  </div>
+
+  <script>
+    let datasCulto = [];
+    const funcoesFixas = ["Foto", "Vídeo", "Live", "Projeção"];
+
+    const nomesCultos = {
+      0: { nome: "Culto de Celebração", turnos: ["Manhã", "Noite"] },
+      2: { nome: "Culto Rocket", turnos: ["Único"] },
+      3: { nome: "Culto Fé", turnos: ["Único"] },
+      6: { nome: "Culto Legacy", turnos: ["Único"] }
+    };
+
+    function gerarCampos() {
+      const mesInput = document.getElementById("mes").value;
+      const voluntarios = document
+        .getElementById("voluntarios")
+        .value.split(",")
+        .map((v) => v.trim())
+        .filter((v) => v);
+      const form = document.getElementById("formEscala");
+
+      if (!mesInput || voluntarios.length === 0) {
+        alert("⚠️ Preencha todos os campos!");
+        return;
+      }
+
+      const data = new Date(mesInput);
+      const ano = data.getFullYear();
+      const mes = data.getMonth();
+      const diasNoMes = new Date(ano, mes + 1, 0).getDate();
+      datasCulto = [];
+
+      for (let dia = 1; dia <= diasNoMes; dia++) {
+        const d = new Date(ano, mes, dia);
+        if ([0, 2, 3, 6].includes(d.getDay())) {
+          datasCulto.push(new Date(ano, mes, dia));
+        }
+      }
+
+      form.innerHTML = `<h2>🗓️ Selecione os cultos e voluntários</h2>`;
+
+      datasCulto.forEach((d, idx) => {
+        const diaSemana = d.getDay();
+        const infoCulto = nomesCultos[diaSemana];
+        const dataStr = d.toLocaleDateString("pt-BR");
+        let bloco = `<div class="dia"><h3>${dataStr} - ${infoCulto.nome}</h3>`;
+
+        if (diaSemana === 0) {
+          // Domingo com turnos Manhã e Noite
+          infoCulto.turnos.forEach((turno) => {
+            const turnoId = `turno_${idx}_${turno}`.replace(/\s+/g, "_");
+            bloco += `
+              <label class="label-incluir-culto">
+                <input type="checkbox" id="${turnoId}_ativo" onchange="toggleTurno('${turnoId}')">
+                Incluir culto ${turno.toLowerCase()}
+              </label>
+              <div id="${turnoId}_bloco" class="turno inativo">`;
+            bloco += gerarFuncoes(voluntarios, idx, turno);
+            bloco += `</div>`;
+          });
+        } else {
+          // Outros cultos sem turnos, um checkbox só
+          const unicoId = `culto_${idx}`;
+          bloco += `
+            <label class="label-incluir-culto">
+              <input type="checkbox" id="${unicoId}_ativo" onchange="toggleTurno('${unicoId}')">
+              Incluir culto
+            </label>
+            <div id="${unicoId}_bloco" class="turno inativo">`;
+          bloco += gerarFuncoes(voluntarios, idx, "Único");
+          bloco += `</div>`;
+        }
+
+        bloco += `</div>`;
+        form.innerHTML += bloco;
+      });
+
+      form.innerHTML += `<button type="button" onclick="gerarTexto()">✅ Gerar Texto da Escala</button>`;
+      form.style.display = "block";
+      document.getElementById("blocoResultado").style.display = "none";
+    }
+
+    // Função para gerar as funções agrupadas visualmente
+    function gerarFuncoes(voluntarios, idx, turno) {
+      const grupos = [
+        { nome: "Mídia Visual", funcoes: ["Foto", "Vídeo"] },
+        { nome: "Transmissão", funcoes: ["Live", "Projeção"] }
+      ];
+      let html = "";
+      grupos.forEach((grupo) => {
+        html += `<div class='funcoes-group'><strong>${grupo.nome}</strong><br>`;
+        grupo.funcoes.forEach((func) => {
+          html += `<label>${func}:</label><div class="funcoes">`;
+          voluntarios.forEach((v) => {
+            const id = `chk_${idx}_${turno}_${func}_${v}`.replace(/\s+/g, "_");
+            html += `
+              <label class="voluntario-checkbox">
+                <input type="checkbox" name="${id}" data-dia="${idx}" data-turno="${turno}" data-func="${func}" value="${v}" onchange="atualizarRestricoes(${idx}, '${turno}', '${v}')">
+                ${v}
+              </label>`;
+          });
+          html += `</div>`;
+        });
+        html += `</div>`;
+      });
+      return html;
+    }
+
+    function toggleTurno(turnoId) {
+      const checkbox = document.getElementById(`${turnoId}_ativo`);
+      const bloco = document.getElementById(`${turnoId}_bloco`);
+      bloco.classList.toggle("inativo", !checkbox.checked);
+    }
+
+    function atualizarRestricoes(idx, turno, voluntario) {
+      const inputs = document.querySelectorAll(
+        `input[data-dia='${idx}'][data-turno='${turno}'][value='${voluntario}']`
+      );
+      let marcado = false;
+      inputs.forEach((inp) => {
+        if (inp.checked) marcado = true;
+      });
+      inputs.forEach((inp) => {
+        if (!inp.checked) inp.disabled = marcado;
+        else inp.disabled = false;
+      });
+    }
+
+    function gerarTexto() {
+      const textoMes = document
+        .getElementById("mes")
+        .valueAsDate.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+      let texto = `📅 Escala - ${textoMes}\n\n`;
+      const contagem = {};
+
+      datasCulto.forEach((d, idx) => {
+        const diaSemana = d.getDay();
+        const infoCulto = nomesCultos[diaSemana];
+        const dataStr = d.toLocaleDateString("pt-BR");
+
+        if (diaSemana === 0) {
+          // Domingo com turnos
+          infoCulto.turnos.forEach((turno) => {
+            const turnoId = `turno_${idx}_${turno}`.replace(/\s+/g, "_");
+            const isAtivo = document.getElementById(`${turnoId}_ativo`).checked;
+            if (!isAtivo) return;
+
+            let blocoTurno = `${turno}:\n`;
+            let temConteudo = false;
+
+            funcoesFixas.forEach((func) => {
+              const checkboxes = document.querySelectorAll(
+                `input[data-dia='${idx}'][data-turno='${turno}'][data-func='${func}']:checked`
+              );
+              if (checkboxes.length > 0) {
+                const nomes = Array.from(checkboxes).map((cb) => cb.value);
+                blocoTurno += `- ${func}: ${nomes.join(", ")}\n`;
+                nomes.forEach((nome) => {
+                  contagem[nome] = (contagem[nome] || 0) + 1;
+                });
+                temConteudo = true;
+              }
+            });
+
+            if (temConteudo) {
+              texto += `🗓️ ${infoCulto.nome} - ${dataStr}\n${blocoTurno}\n`;
+            }
+          });
+        } else {
+          // Terça, Quarta e Sábado sem turnos
+          const unicoId = `culto_${idx}`;
+          const isAtivo = document.getElementById(`${unicoId}_ativo`).checked;
+          if (!isAtivo) return;
+
+          let blocoCulto = "";
+          let temConteudo = false;
+
+          funcoesFixas.forEach((func) => {
+            const checkboxes = document.querySelectorAll(
+              `input[data-dia='${idx}'][data-turno='Único'][data-func='${func}']:checked`
+            );
+            if (checkboxes.length > 0) {
+              const nomes = Array.from(checkboxes).map((cb) => cb.value);
+              blocoCulto += `- ${func}: ${nomes.join(", ")}\n`;
+              nomes.forEach((nome) => {
+                contagem[nome] = (contagem[nome] || 0) + 1;
+              });
+              temConteudo = true;
+            }
+          });
+
+          if (temConteudo) {
+            texto += `🗓️ ${infoCulto.nome} - ${dataStr}\n${blocoCulto}\n`;
+          }
+        }
+      });
+
+      let relatorio = "📊 Relatório de Voluntários:\n";
+      Object.entries(contagem)
+        .sort((a, b) => b[1] - a[1])
+        .forEach(([nome, qtd]) => {
+          relatorio += `- ${nome}: ${qtd} vez(es)\n`;
+        });
+
+      document.getElementById("relatorio").textContent = relatorio.trim();
+      document.getElementById("resultado").textContent = texto.trim() || "Nenhum culto preenchido.";
+      document.getElementById("blocoResultado").style.display = "block";
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function copiarTexto() {
+      const texto = `${document.getElementById("relatorio").textContent}\n\n${document.getElementById("resultado").textContent}`;
+      navigator.clipboard.writeText(texto).then(() => {
+        alert("✅ Texto copiado! Cole no WhatsApp.");
+      });
+    }
+  </script>
+</body>
+</html>
