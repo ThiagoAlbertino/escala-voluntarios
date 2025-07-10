@@ -428,19 +428,18 @@
             `input[data-dia='${idx}'][data-turno='${turno}'][data-func='${func}']:checked`
           );
           if (checkboxes.length > 0) {
-            const nomes = Array.from(checkboxes).map((cb) => `*${cb.value}*`);
+            const nomes = Array.from(checkboxes).map((cb) => `• *${cb.value}*`).join("\n");
             const emoji = emojis[func] || "";
-            blocoTurno += `• ${emoji} _${func}_: ${nomes.join(", ")}\n`;
-            nomes.forEach((nome) => {
-              const nomeLimpo = nome.replace(/\*/g, "");
-              contagem[nomeLimpo] = (contagem[nomeLimpo] || 0) + 1;
+            blocoTurno += `${emoji} _${func}_:\n${nomes}\n`;
+            Array.from(checkboxes).forEach((cb) => {
+              contagem[cb.value] = (contagem[cb.value] || 0) + 1;
             });
             temConteudo = true;
           }
         });
 
         if (temConteudo) {
-          texto += `📍 *${infoCulto.nome}* - ${dataStr}\n${blocoTurno}\n`;
+          texto += `--- *${infoCulto.nome}* - ${dataStr}\n${blocoTurno}\n`;
         }
       });
     } else {
@@ -456,19 +455,18 @@
           `input[data-dia='${idx}'][data-turno='Único'][data-func='${func}']:checked`
         );
         if (checkboxes.length > 0) {
-          const nomes = Array.from(checkboxes).map((cb) => `*${cb.value}*`);
+          const nomes = Array.from(checkboxes).map((cb) => `• *${cb.value}*`).join("\n");
           const emoji = emojis[func] || "";
-          blocoCulto += `• ${emoji} _${func}_: ${nomes.join(", ")}\n`;
-          nomes.forEach((nome) => {
-            const nomeLimpo = nome.replace(/\*/g, "");
-            contagem[nomeLimpo] = (contagem[nomeLimpo] || 0) + 1;
+          blocoCulto += `${emoji} _${func}_:\n${nomes}\n`;
+          Array.from(checkboxes).forEach((cb) => {
+            contagem[cb.value] = (contagem[cb.value] || 0) + 1;
           });
           temConteudo = true;
         }
       });
 
       if (temConteudo) {
-        texto += `📍 *${infoCulto.nome}* - ${dataStr}\n${blocoCulto}\n`;
+        texto += `--- *${infoCulto.nome}* - ${dataStr}\n${blocoCulto}\n`;
       }
     }
   });
