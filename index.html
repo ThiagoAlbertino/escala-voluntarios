@@ -170,13 +170,41 @@
   <label for="mes">Selecione o mês:</label>
   <input type="month" id="mes" />
 
-  <label for="voluntarios">Voluntários <strong>(separados por vírgula)</strong>:</label>
-  <input
-    type="text"
+  <label for="voluntarios">Voluntários do Vídeo <strong>(separados por vírgula)</strong>:</label>
+  <textarea
     id="voluntarios"
-    placeholder="Ana, João, Marcos, Paula"
-    value="Amanda, Brendha, Fernanda, Hugo, Mari, Raquel, Thiago, Vitória, Yasmin"
-  />
+    placeholder="Amanda, Hugo, Brendha..."
+    rows="2"
+    style="resize: vertical; width: 100%; font-size: 16px; padding: 10px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 10px;"
+  >Amanda, Fernanda, Mari, Thiago</textarea>
+
+  <label for="volFoto">Voluntários da Foto <strong>(separados por vírgula)</strong>:</label>
+  <textarea
+    id="volFoto"
+    placeholder="Somente voluntários da foto..."
+    rows="2"
+    style="resize: vertical; width: 100%; font-size: 16px; padding: 10px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 10px;"
+  >Amanda, Fernanda, Mari, Thiago</textarea>
+
+
+  <label for="volLive">Voluntários da Live <strong>(separados por vírgula)</strong>:</label>
+  <textarea
+    id="volLive"
+    placeholder="Somente voluntários da live..."
+    rows="2"
+    style="resize: vertical; width: 100%; font-size: 16px; padding: 10px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 10px;"
+  >Brendha, Hugo, Kemelly, Luan, Thiago, Yasmin</textarea>
+
+
+  <label for="volProj">Voluntários da Projeção <strong>(separados por vírgula)</strong>:</label>
+  <textarea
+    id="volProj"
+    placeholder="Somente voluntários da projeção..."
+    rows="2"
+    style="resize: vertical; width: 100%; font-size: 16px; padding: 10px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 10px;"
+  >Yasmin, Raquel, Vitória</textarea>
+
+
   
   <p id="msgErro"></p>
 
@@ -201,8 +229,16 @@
     // Carregar voluntários do localStorage
     window.onload = () => {
       const salvos = localStorage.getItem("voluntarios");
+      const projSalvos = localStorage.getItem("volProj");
+      const liveSalvos = localStorage.getItem("volLive");
       if (salvos) document.getElementById("voluntarios").value = salvos;
+      if (projSalvos) document.getElementById("volProj").value = projSalvos;
+      if (liveSalvos) document.getElementById("volLive").value = liveSalvos;
+      const fotoSalvos = localStorage.getItem("volFoto");
+      if (fotoSalvos) document.getElementById("volFoto").value = fotoSalvos;
     };
+
+
 
     // Salvar voluntários no localStorage conforme digita
     document.getElementById("voluntarios").addEventListener("input", () => {
@@ -226,7 +262,7 @@
         .filter((v) => v);
 
       if (!mesInput || voluntarios.length === 0) {
-        document.getElementById("msgErro").textContent = "⚠️ Preencha todos os campos!";
+        document.getElementById("msgErro").textContent = "⚠️ Escolha o mês da escala!";
         return;
       }
 
@@ -296,30 +332,49 @@
     }
 
     function gerarFuncoes(voluntarios, idx, turno) {
-      const grupos = [
-        { nome: "📷 Voluntários Foto e Vídeo", funcoes: ["Foto", "Vídeo"] },
-        { nome: "📽️ Voluntários Projeção e Live", funcoes: ["Live", "Projeção"] }
-      ];
-      let html = "";
-      grupos.forEach((grupo) => {
-        html += `<div class='funcoes-group'><strong>${grupo.nome}</strong><br>`;
-        grupo.funcoes.forEach((func) => {
-            const classeFunc = (func === "Live" || func === "Projeção") ? "func-transmissao" : "";
-            html += `<label class="${classeFunc}">${func}:</label><div class="funcoes">`;
-          voluntarios.forEach((v) => {
-            const id = `chk_${idx}_${turno}_${func}_${v}`.replace(/\s+/g, "_");
-            html += `
-              <label class="voluntario-checkbox" for="${id}">
-                <input type="checkbox" id="${id}" name="${id}" data-dia="${idx}" data-turno="${turno}" data-func="${func}" value="${v}" onchange="atualizarRestricoes(${idx}, '${turno}', '${v}')">
-                ${v}
-              </label>`;
-          });
-          html += `</div>`;
+    const grupos = [
+      { nome: "📷 Voluntários Foto e Vídeo", cor: "orange", funcoes: ["Foto", "Vídeo"] },
+      { nome: "📽️ Voluntários Projeção e Live", cor: "green", funcoes: ["Live", "Projeção"] }
+    ];
+
+    const voluntariosProjecao = document.getElementById("volProj").value
+      .split(",").map(v => v.trim()).filter(v => v);
+    const voluntariosLive = document.getElementById("volLive").value
+      .split(",").map(v => v.trim()).filter(v => v);
+
+     const voluntariosFoto = document.getElementById("volFoto")?.value
+    .split(",").map(v => v.trim()).filter(v => v) || [];
+
+
+    let html = "";
+    grupos.forEach((grupo) => {
+      html += `<div class='funcoes-group' style="border-left: 5px solid ${grupo.cor};"><strong>${grupo.nome}</strong><br>`;
+      grupo.funcoes.forEach((func) => {
+        const classeFunc = (func === "Live" || func === "Projeção") ? "func-transmissao" : "";
+        html += `<label class="${classeFunc}">${func}:</label><div class="funcoes">`;
+
+        let lista = voluntarios;
+        if (func === "Projeção") lista = voluntariosProjecao;
+        else if (func === "Live") lista = voluntariosLive;
+        else if (func === "Foto") lista = voluntariosFoto;
+
+        lista.forEach((v) => {
+          const id = `chk_${idx}_${turno}_${func}_${v}`.replace(/\s+/g, "_");
+          html += `
+            <label class="voluntario-checkbox" for="${id}">
+              <input type="checkbox" id="${id}" name="${id}" data-dia="${idx}" data-turno="${turno}" data-func="${func}" value="${v}" onchange="atualizarRestricoes(${idx}, '${turno}', '${v}')">
+              ${v}
+            </label>`;
         });
+
         html += `</div>`;
       });
-      return html;
-    }
+      html += `</div>`;
+    });
+    return html;
+  }
+
+
 
     function toggleTurno(turnoId) {
       const checkbox = document.getElementById(`${turnoId}_ativo`);
@@ -425,6 +480,20 @@
       document.getElementById("blocoResultado").style.display = "block";
       window.scrollTo({top: document.body.scrollHeight, behavior: "smooth"});
     }
+
+    document.getElementById("voluntarios").addEventListener("input", () => {
+      localStorage.setItem("voluntarios", document.getElementById("voluntarios").value);
+    });
+    document.getElementById("volProj").addEventListener("input", () => {
+      localStorage.setItem("volProj", document.getElementById("volProj").value);
+    });
+    document.getElementById("volLive").addEventListener("input", () => {
+      localStorage.setItem("volLive", document.getElementById("volLive").value);
+    });
+    document.getElementById("volFoto").addEventListener("input", () => {
+      localStorage.setItem("volFoto", document.getElementById("volFoto").value);
+    });
+
 
     function copiarTexto() {
       const texto = `${document.getElementById("relatorio").textContent}\n\n${document.getElementById("resultado").textContent}`;
