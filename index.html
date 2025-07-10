@@ -4,80 +4,163 @@
   <meta charset="UTF-8" />
   <title>Escala Voluntariado - Lagoinha Londrina</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="logo-lagoinha.png" type="image/png" />
   <style>
     * { box-sizing: border-box; }
     body {
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 20px;
-      background: #f7f7f7;
+      background: #f7f9fc;
       color: #333;
     }
-    h1, h2, h3 { color: #2c3e50; }
+    h1 {
+      color: #2c3e50;
+      position: sticky;
+      top: 0;
+      background: #f7f9fc;
+      padding: 15px 0;
+      margin: 0 0 20px 0;
+      border-bottom: 1px solid #ccc;
+      z-index: 100;
+      text-align: center;
+      font-weight: 700;
+    }
+    h2, h3 {
+      color: #2c3e50;
+    }
     input[type="text"], input[type="month"], button {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       margin-top: 10px;
       margin-bottom: 20px;
       border: 1px solid #ccc;
-      border-radius: 6px;
+      border-radius: 8px;
       font-size: 16px;
+      transition: border-color 0.3s;
+    }
+    input[type="text"]:focus, input[type="month"]:focus {
+      border-color: #4a90e2;
+      outline: none;
     }
     button {
-      background-color: #27ae60;
+      background-color: #4a90e2;
       color: white;
       border: none;
       cursor: pointer;
+      border-radius: 8px;
+      font-weight: 600;
       transition: background 0.3s;
     }
-    button:hover { background-color: #219150; }
+    button:hover {
+      background-color: #357ab8;
+    }
+    .botoes-grupo {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 30px;
+    }
+    .botoes-grupo button {
+      flex: 1 1 48%;
+      min-width: 140px;
+    }
     .dia {
       background: #fff;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      padding: 15px;
-      margin-bottom: 20px;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      transition: box-shadow 0.3s;
     }
-    .turno { margin-top: 15px; margin-bottom: 10px; }
+    .dia:hover {
+      box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+    }
+    .turno {
+      margin-top: 15px;
+      margin-bottom: 10px;
+      padding-left: 10px;
+    }
     .funcoes-group {
       margin-bottom: 15px;
-      padding: 10px;
-      border: 1px dashed #ccc;
-      border-radius: 4px;
-      background-color: #f0f0f0;
+      padding: 12px;
+      border: 1px dashed #bbb;
+      border-radius: 8px;
+      background-color: #eaf3fc;
     }
-    .funcoes { margin-left: 10px; margin-bottom: 10px; }
+    .funcoes-group strong {
+      color: #2c3e50;
+      font-weight: 600;
+    }
+    .funcoes {
+      margin-left: 15px;
+      margin-bottom: 12px;
+    }
     .voluntario-checkbox {
       display: inline-block;
-      margin-right: 10px;
-      margin-top: 5px;
-    }
-    .inativo { display: none; }
-    #resultado {
-      white-space: pre-wrap;
-      background: #fff;
-      padding: 15px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-    #relatorio {
-      background: #e8f6f0;
-      padding: 10px;
-      border: 1px solid #bbb;
-      border-radius: 6px;
-      margin-bottom: 20px;
-    }
-    .label-incluir-culto {
-      color: red;
-      font-weight: bold;
+      margin-right: 12px;
+      margin-top: 8px;
+      user-select: none;
       cursor: pointer;
     }
-    @media (max-width: 600px) {
-      body { padding: 10px; }
-      input, button { font-size: 15px; padding: 8px; }
-      .dia { padding: 10px; }
-      .voluntario-checkbox { display: block; margin-bottom: 5px; }
+    .voluntario-checkbox input {
+      cursor: pointer;
+      margin-right: 4px;
     }
+    .inativo {
+      display: none;
+    }
+    #resultado, #relatorio {
+      white-space: pre-wrap;
+      background: #fff;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+      margin-bottom: 25px;
+    }
+    #relatorio {
+      background: #d9e9ff;
+      border-color: #99c2ff;
+      color: #164a8a;
+      font-weight: 600;
+    }
+    .label-incluir-culto {
+      color: #d64545;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+      display: block;
+      margin-bottom: 6px;
+      font-size: 16px;
+    }
+    #msgErro {
+      color: #d64545;
+      font-weight: 700;
+      margin-top: -15px;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    @media (max-width: 600px) {
+      body { padding: 12px; }
+      input, button { font-size: 15px; padding: 10px; }
+      .dia { padding: 15px; }
+      .voluntario-checkbox { display: block; margin-bottom: 8px; }
+      .botoes-grupo {
+        flex-direction: column;
+      }
+      .botoes-grupo button {
+        flex: 1 1 100%;
+        min-width: auto;
+      }
+    }
+
+    label.func-transmissao {
+        color: #006699;
+        font-weight: bold;
+    }
+
   </style>
 </head>
 <body>
@@ -92,10 +175,15 @@
     type="text"
     id="voluntarios"
     placeholder="Ana, João, Marcos, Paula"
-    value="Amanda,Brendha,Fernanda,Hugo,Mari,Raquel,Thiago,Vitória,Yasmin"
+    value="Amanda, Brendha, Fernanda, Hugo, Mari, Raquel, Thiago, Vitória, Yasmin"
   />
+  
+  <p id="msgErro"></p>
 
-  <button onclick="gerarCampos()">📅 Criar Escala do Mês</button>
+  <div class="botoes-grupo">
+    <button onclick="gerarCampos()">📅 Criar Escala do Mês</button>
+    <button onclick="limparFormulario()">🧹 Limpar Escala</button>
+  </div>
 
   <form id="formEscala" style="display:none;"></form>
 
@@ -110,6 +198,17 @@
     let datasCulto = [];
     const funcoesFixas = ["Foto", "Vídeo", "Live", "Projeção"];
 
+    // Carregar voluntários do localStorage
+    window.onload = () => {
+      const salvos = localStorage.getItem("voluntarios");
+      if (salvos) document.getElementById("voluntarios").value = salvos;
+    };
+
+    // Salvar voluntários no localStorage conforme digita
+    document.getElementById("voluntarios").addEventListener("input", () => {
+      localStorage.setItem("voluntarios", document.getElementById("voluntarios").value);
+    });
+
     const nomesCultos = {
       0: { nome: "Culto de Celebração", turnos: ["Manhã", "Noite"] },
       2: { nome: "Culto Rocket", turnos: ["Único"] },
@@ -118,19 +217,20 @@
     };
 
     function gerarCampos() {
+      document.getElementById("msgErro").textContent = "";
       const mesInput = document.getElementById("mes").value;
       const voluntarios = document
         .getElementById("voluntarios")
         .value.split(",")
         .map((v) => v.trim())
         .filter((v) => v);
-      const form = document.getElementById("formEscala");
 
       if (!mesInput || voluntarios.length === 0) {
-        alert("⚠️ Preencha todos os campos!");
+        document.getElementById("msgErro").textContent = "⚠️ Preencha todos os campos!";
         return;
       }
 
+      const form = document.getElementById("formEscala");
       const data = new Date(mesInput);
       const ano = data.getFullYear();
       const mes = data.getMonth();
@@ -153,11 +253,10 @@
         let bloco = `<div class="dia"><h3>${dataStr} - ${infoCulto.nome}</h3>`;
 
         if (diaSemana === 0) {
-          // Domingo com turnos Manhã e Noite
           infoCulto.turnos.forEach((turno) => {
             const turnoId = `turno_${idx}_${turno}`.replace(/\s+/g, "_");
             bloco += `
-              <label class="label-incluir-culto">
+              <label class="label-incluir-culto" for="${turnoId}_ativo">
                 <input type="checkbox" id="${turnoId}_ativo" onchange="toggleTurno('${turnoId}')">
                 Incluir culto ${turno.toLowerCase()}
               </label>
@@ -166,10 +265,9 @@
             bloco += `</div>`;
           });
         } else {
-          // Outros cultos sem turnos, um checkbox só
           const unicoId = `culto_${idx}`;
           bloco += `
-            <label class="label-incluir-culto">
+            <label class="label-incluir-culto" for="${unicoId}_ativo">
               <input type="checkbox" id="${unicoId}_ativo" onchange="toggleTurno('${unicoId}')">
               Incluir culto
             </label>
@@ -185,24 +283,34 @@
       form.innerHTML += `<button type="button" onclick="gerarTexto()">✅ Gerar Texto da Escala</button>`;
       form.style.display = "block";
       document.getElementById("blocoResultado").style.display = "none";
+
+      window.scrollTo({top: form.offsetTop, behavior: "smooth"});
     }
 
-    // Função para gerar as funções agrupadas visualmente
+    function limparFormulario() {
+      document.getElementById("formEscala").innerHTML = "";
+      document.getElementById("formEscala").style.display = "none";
+      document.getElementById("blocoResultado").style.display = "none";
+      document.getElementById("msgErro").textContent = "";
+      window.scrollTo({top: 0, behavior: "smooth"});
+    }
+
     function gerarFuncoes(voluntarios, idx, turno) {
       const grupos = [
-        { nome: "Mídia Visual", funcoes: ["Foto", "Vídeo"] },
-        { nome: "Transmissão", funcoes: ["Live", "Projeção"] }
+        { nome: "📷 Voluntários Foto e Vídeo", funcoes: ["Foto", "Vídeo"] },
+        { nome: "📽️ Voluntários Projeção e Live", funcoes: ["Live", "Projeção"] }
       ];
       let html = "";
       grupos.forEach((grupo) => {
         html += `<div class='funcoes-group'><strong>${grupo.nome}</strong><br>`;
         grupo.funcoes.forEach((func) => {
-          html += `<label>${func}:</label><div class="funcoes">`;
+            const classeFunc = (func === "Live" || func === "Projeção") ? "func-transmissao" : "";
+            html += `<label class="${classeFunc}">${func}:</label><div class="funcoes">`;
           voluntarios.forEach((v) => {
             const id = `chk_${idx}_${turno}_${func}_${v}`.replace(/\s+/g, "_");
             html += `
-              <label class="voluntario-checkbox">
-                <input type="checkbox" name="${id}" data-dia="${idx}" data-turno="${turno}" data-func="${func}" value="${v}" onchange="atualizarRestricoes(${idx}, '${turno}', '${v}')">
+              <label class="voluntario-checkbox" for="${id}">
+                <input type="checkbox" id="${id}" name="${id}" data-dia="${idx}" data-turno="${turno}" data-func="${func}" value="${v}" onchange="atualizarRestricoes(${idx}, '${turno}', '${v}')">
                 ${v}
               </label>`;
           });
@@ -234,9 +342,14 @@
     }
 
     function gerarTexto() {
-      const textoMes = document
-        .getElementById("mes")
-        .valueAsDate.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+      const mesInput = document.getElementById("mes").value;
+      if (!mesInput) {
+        document.getElementById("msgErro").textContent = "⚠️ Selecione um mês antes de gerar a escala.";
+        return;
+      }
+      document.getElementById("msgErro").textContent = "";
+
+      const textoMes = new Date(mesInput + "-01").toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
       let texto = `📅 Escala - ${textoMes}\n\n`;
       const contagem = {};
 
@@ -246,7 +359,6 @@
         const dataStr = d.toLocaleDateString("pt-BR");
 
         if (diaSemana === 0) {
-          // Domingo com turnos
           infoCulto.turnos.forEach((turno) => {
             const turnoId = `turno_${idx}_${turno}`.replace(/\s+/g, "_");
             const isAtivo = document.getElementById(`${turnoId}_ativo`).checked;
@@ -274,7 +386,6 @@
             }
           });
         } else {
-          // Terça, Quarta e Sábado sem turnos
           const unicoId = `culto_${idx}`;
           const isAtivo = document.getElementById(`${unicoId}_ativo`).checked;
           if (!isAtivo) return;
@@ -312,7 +423,7 @@
       document.getElementById("relatorio").textContent = relatorio.trim();
       document.getElementById("resultado").textContent = texto.trim() || "Nenhum culto preenchido.";
       document.getElementById("blocoResultado").style.display = "block";
-      window.scrollTo(0, document.body.scrollHeight);
+      window.scrollTo({top: document.body.scrollHeight, behavior: "smooth"});
     }
 
     function copiarTexto() {
