@@ -398,7 +398,7 @@
   }
   document.getElementById("msgErro").textContent = "";
 
-  const textoMes = new Date(mesInput + "-01").toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  const textoMes = new Date(mesInput).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
   let texto = `📅 *Escala - ${textoMes}*\n\n`;
   const contagem = {};
 
