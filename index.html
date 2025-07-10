@@ -253,83 +253,77 @@
     };
 
     function gerarCampos() {
-      document.getElementById("msgErro").textContent = "";
-      const mesInput = document.getElementById("mes").value;
-      const voluntarios = document
-        .getElementById("voluntarios")
-        .value.split(",")
-        .map((v) => v.trim())
-        .filter((v) => v);
+  document.getElementById("msgErro").textContent = "";
+  const mesInput = document.getElementById("mes").value;
+  const voluntarios = document
+    .getElementById("voluntarios")
+    .value.split(",")
+    .map((v) => v.trim())
+    .filter((v) => v);
 
-      if (!mesInput || voluntarios.length === 0) {
-        document.getElementById("msgErro").textContent = "⚠️ Escolha o mês da escala!";
-        return;
-      }
+  if (!mesInput || voluntarios.length === 0) {
+    document.getElementById("msgErro").textContent = "⚠️ Preencha todos os campos!";
+    return;
+  }
 
-      const form = document.getElementById("formEscala");
-      const data = new Date(mesInput);
-      const ano = data.getFullYear();
-      const mes = data.getMonth();
-      const diasNoMes = new Date(ano, mes + 1, 0).getDate();
-      datasCulto = [];
+  const form = document.getElementById("formEscala");
 
-      for (let dia = 1; dia <= diasNoMes; dia++) {
-        const d = new Date(ano, mes, dia);
-        if ([0, 2, 3, 6].includes(d.getDay())) {
-          datasCulto.push(new Date(ano, mes, dia));
-        }
-      }
+  // Correção aqui: parse do ano e mês com valores reais
+  const [anoStr, mesStr] = mesInput.split("-");
+  const ano = parseInt(anoStr, 10);
+  const mes = parseInt(mesStr, 10); // mês 1 a 12
+  const diasNoMes = new Date(ano, mes, 0).getDate(); // passa mês como está (já que JS usa 0-11 internamente)
+  datasCulto = [];
 
-      form.innerHTML = `<h2>🗓️ Selecione os cultos e voluntários</h2>`;
+  for (let dia = 1; dia <= diasNoMes; dia++) {
+    const d = new Date(ano, mes - 1, dia); // aqui sim subtrai 1 para usar no Date()
+    if ([0, 2, 3, 6].includes(d.getDay())) {
+      datasCulto.push(d);
+    }
+  }
 
-      datasCulto.forEach((d, idx) => {
-        const diaSemana = d.getDay();
-        const infoCulto = nomesCultos[diaSemana];
-        const dataStr = d.toLocaleDateString("pt-BR");
-        let bloco = `<div class="dia"><h3>${dataStr} - ${infoCulto.nome}</h3>`;
+  form.innerHTML = `<h2>🗓️ Selecione os cultos e voluntários</h2>`;
 
-        if (diaSemana === 0) {
-          infoCulto.turnos.forEach((turno) => {
-            const turnoId = `turno_${idx}_${turno}`.replace(/\s+/g, "_");
-            bloco += `
-              <label class="label-incluir-culto" for="${turnoId}_ativo">
-                <input type="checkbox" id="${turnoId}_ativo" onchange="toggleTurno('${turnoId}')">
-                Incluir culto ${turno.toLowerCase()}
-              </label>
-              <div id="${turnoId}_bloco" class="turno inativo">`;
-            bloco += gerarFuncoes(voluntarios, idx, turno);
-            bloco += `</div>`;
-          });
-        } else {
-          const unicoId = `culto_${idx}`;
-          bloco += `
-            <label class="label-incluir-culto" for="${unicoId}_ativo">
-              <input type="checkbox" id="${unicoId}_ativo" onchange="toggleTurno('${unicoId}')">
-              Incluir culto
-            </label>
-            <div id="${unicoId}_bloco" class="turno inativo">`;
-          bloco += gerarFuncoes(voluntarios, idx, "Único");
-          bloco += `</div>`;
-        }
+  datasCulto.forEach((d, idx) => {
+    const diaSemana = d.getDay();
+    const infoCulto = nomesCultos[diaSemana];
+    const dataStr = d.toLocaleDateString("pt-BR");
+    let bloco = `<div class="dia"><h3>${dataStr} - ${infoCulto.nome}</h3>`;
 
+    if (diaSemana === 0) {
+      infoCulto.turnos.forEach((turno) => {
+        const turnoId = `turno_${idx}_${turno}`.replace(/\s+/g, "_");
+        bloco += `
+          <label class="label-incluir-culto" for="${turnoId}_ativo">
+            <input type="checkbox" id="${turnoId}_ativo" onchange="toggleTurno('${turnoId}')">
+            Incluir culto ${turno.toLowerCase()}
+          </label>
+          <div id="${turnoId}_bloco" class="turno inativo">`;
+        bloco += gerarFuncoes(voluntarios, idx, turno);
         bloco += `</div>`;
-        form.innerHTML += bloco;
       });
-
-      form.innerHTML += `<button type="button" onclick="gerarTexto()">✅ Gerar Texto da Escala</button>`;
-      form.style.display = "block";
-      document.getElementById("blocoResultado").style.display = "none";
-
-      window.scrollTo({top: form.offsetTop, behavior: "smooth"});
+    } else {
+      const unicoId = `culto_${idx}`;
+      bloco += `
+        <label class="label-incluir-culto" for="${unicoId}_ativo">
+          <input type="checkbox" id="${unicoId}_ativo" onchange="toggleTurno('${unicoId}')">
+          Incluir culto
+        </label>
+        <div id="${unicoId}_bloco" class="turno inativo">`;
+      bloco += gerarFuncoes(voluntarios, idx, "Único");
+      bloco += `</div>`;
     }
 
-    function limparFormulario() {
-      document.getElementById("formEscala").innerHTML = "";
-      document.getElementById("formEscala").style.display = "none";
-      document.getElementById("blocoResultado").style.display = "none";
-      document.getElementById("msgErro").textContent = "";
-      window.scrollTo({top: 0, behavior: "smooth"});
-    }
+    bloco += `</div>`;
+    form.innerHTML += bloco;
+  });
+
+  form.innerHTML += `<button type="button" onclick="gerarTexto()">✅ Gerar Texto da Escala</button>`;
+  form.style.display = "block";
+  document.getElementById("blocoResultado").style.display = "none";
+
+  window.scrollTo({ top: form.offsetTop, behavior: "smooth" });
+}
 
     function gerarFuncoes(voluntarios, idx, turno) {
     const grupos = [
@@ -404,10 +398,16 @@
   }
   document.getElementById("msgErro").textContent = "";
 
-  // Corrigido aqui para interpretar corretamente o mês e ano
-  const [ano, mes] = mesInput.split("-").map(Number);
-  const data = new Date(ano, mes - 1, 1);
-  const textoMes = data.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  // Corrigido: força criação da data com dia 1, mês e ano extraídos do input
+  const [anoStr, mesStr] = mesInput.split("-");
+  const ano = parseInt(anoStr, 10);
+  const mes = parseInt(mesStr, 10); // 1 a 12
+  const dataReferencia = new Date(ano, mes - 1, 1);
+
+  const textoMes = dataReferencia.toLocaleDateString("pt-BR", {
+    month: "long",
+    year: "numeric"
+  });
 
   let texto = `📅 Escala - ${textoMes}\n\n`;
   const contagem = {};
@@ -482,7 +482,7 @@
   document.getElementById("relatorio").textContent = relatorio.trim();
   document.getElementById("resultado").textContent = texto.trim() || "Nenhum culto preenchido.";
   document.getElementById("blocoResultado").style.display = "block";
-  window.scrollTo({top: document.body.scrollHeight, behavior: "smooth"});
+  window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
 }
 
 
